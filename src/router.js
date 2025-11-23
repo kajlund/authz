@@ -43,9 +43,9 @@ export function getRouter(log) {
         },
         {
           method: 'post',
-          path: '/register',
+          path: '/signup',
           middleware: [],
-          handler: hnd.registerUser,
+          handler: hnd.signupUser,
         },
         {
           method: 'delete',
