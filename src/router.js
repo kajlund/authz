@@ -1,9 +1,11 @@
 import express from 'express';
 
 import { getHandlers } from './handlers.js';
+import { getAuthHandler } from './middleware/auth.js';
 
 export function getRouter(log) {
   const hnd = getHandlers(log);
+  const auth = getAuthHandler(log);
 
   const routeGroups = [
     {
@@ -26,7 +28,7 @@ export function getRouter(log) {
         {
           method: 'get',
           path: '/me',
-          middleware: [],
+          middleware: [auth],
           handler: hnd.getCurrentUser,
         },
         {

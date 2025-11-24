@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 
 import db from '../db/index.js';
-import { sessionsTable } from '../db/schemas.js';
+import { sessionsTable, usersTable } from '../db/schemas.js';
 
 function getDAO(log) {
   return {
@@ -21,9 +21,35 @@ export function getSessionServices(log) {
   const dao = getDAO(log);
 
   return {
-    createUserSession: async function (user) {
+    createSession: async function (user) {
       const session = await dao.addSession({ userId: user.id });
       return session;
+    },
+    checkSession: async function (sessionId) {
+      let userInfo = null;
+      const session = await dao.findSessionById(sessionId);
+      if (session) {
+        const [data] = await db
+          .select({
+            id: sessionsTable.id,
+            userId: sessionsTable.userId,
+            alias: usersTable.alias,
+            email: usersTable.email,
+          })
+          .from(sessionsTable)
+          .rightJoin(usersTable, eq(usersTable.id, sessionsTable.userId))
+          .where(eq(sessionsTable.id, sessionId));
+
+        if (data) {
+          userInfo = {
+            sessionId: data.id,
+            userId: data.userId,
+            alias: data.alias,
+            email: data.email,
+          };
+        }
+      }
+      return userInfo;
     },
   };
 }

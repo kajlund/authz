@@ -8,10 +8,20 @@ import { BadRequestError } from './utils/errors.js';
 
 export function getHandlers(log) {
   const svcUser = getUserServices(log);
-
   return {
     deleteUser,
-    getCurrentUser,
+    getCurrentUser: function (req, res, next) {
+      try {
+        res.status(codes.OK).json({
+          success: true,
+          status: codes.OK,
+          message: 'Your details',
+          data: req.user,
+        });
+      } catch (err) {
+        next(err);
+      }
+    },
     loginUser: async function (req, res, next) {
       try {
         const vld = loginPayloadSchema.safeParse(req.body);

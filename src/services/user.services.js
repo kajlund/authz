@@ -18,6 +18,10 @@ function getDAO(log) {
       const [found] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
       return found;
     },
+    findUserById: async function (id) {
+      const [found] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
+      return found;
+    },
   };
 }
 
@@ -35,7 +39,7 @@ export function getUserServices(log) {
       const newHash = createHmac('sha256', user.salt).update(password).digest('hex');
       if (newHash !== user.password) throw new UnauthorizedError('Invalid credentials');
       // Password matched. Create session
-      const session = await svcSession.createUserSession(user);
+      const session = await svcSession.createSession(user);
 
       return session;
     },
