@@ -3,9 +3,9 @@ import express from 'express';
 import { getHandlers } from './handlers.js';
 import { getAuthHandler } from './middleware/auth.js';
 
-export function getRouter(log) {
-  const hnd = getHandlers(log);
-  const auth = getAuthHandler(log);
+export function getRouter(cnf, log) {
+  const hnd = getHandlers(cnf, log);
+  const auth = getAuthHandler(cnf, log);
 
   const routeGroups = [
     {

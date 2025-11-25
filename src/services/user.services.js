@@ -25,9 +25,9 @@ function getDAO(log) {
   };
 }
 
-export function getUserServices(log) {
+export function getUserServices(cnf, log) {
   const dao = getDAO(log);
-  const svcSession = getSessionServices(log);
+  const svcSession = getSessionServices(cnf, log);
 
   return {
     loginUser: async function (loginData) {
@@ -39,7 +39,8 @@ export function getUserServices(log) {
       const newHash = createHmac('sha256', user.salt).update(password).digest('hex');
       if (newHash !== user.password) throw new UnauthorizedError('Invalid credentials');
       // Password matched. Create session
-      const session = await svcSession.createSession(user);
+      // const session = await svcSession.createSession(user);
+      const session = svcSession.createJWT(user);
 
       return session;
     },
@@ -53,11 +54,13 @@ export function getUserServices(log) {
       const salt = randomBytes(256).toString('hex');
       const hashedPwd = createHmac('sha256', salt).update(password).digest('hex');
       const addedUser = await dao.addUser({ alias, email, password: hashedPwd, salt });
-      return {
+      const userObj = {
         id: addedUser.id,
         alias: addedUser.alias,
         email: addedUser.email,
       };
+      const session = svcSession.createJWT(userObj);
+      return session;
     },
   };
 }

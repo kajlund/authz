@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import jwt from 'jsonwebtoken';
 
 import db from '../db/index.js';
 import { sessionsTable, usersTable } from '../db/schemas.js';
@@ -17,10 +18,28 @@ function getDAO(log) {
   };
 }
 
-export function getSessionServices(log) {
+export function getSessionServices(cnf, log) {
   const dao = getDAO(log);
 
   return {
+    createJWT: function (user) {
+      const payload = {
+        id: user.id,
+        alias: user.alias,
+        email: user.email,
+      };
+      const token = jwt.sign(payload, cnf.jwtSecret, { expiresIn: '24h' });
+      return token;
+    },
+    verifyJWT: function (token) {
+      try {
+        const decoded = jwt.decode(token, cnf.jwtSecret);
+        return decoded;
+      } catch (err) {
+        log.error(err);
+        return null;
+      }
+    },
     createSession: async function (user) {
       const session = await dao.addSession({ userId: user.id });
       return session;

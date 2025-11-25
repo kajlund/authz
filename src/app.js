@@ -26,7 +26,7 @@ export function getApp(cnf, log) {
   }
 
   // Add routes
-  app.use(getRouter(log));
+  app.use(getRouter(cnf, log));
 
   // Add 404 handler
   app.use(getNotFoundHandler());

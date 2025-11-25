@@ -6,8 +6,8 @@ import { getUserServices } from './services/user.services.js';
 import { loginPayloadSchema, signupPayloadSchema } from './utils/validators.js';
 import { BadRequestError } from './utils/errors.js';
 
-export function getHandlers(log) {
-  const svcUser = getUserServices(log);
+export function getHandlers(cnf, log) {
+  const svcUser = getUserServices(cnf, log);
   return {
     deleteUser,
     getCurrentUser: function (req, res, next) {
@@ -31,7 +31,7 @@ export function getHandlers(log) {
           success: true,
           status: codes.OK,
           message: 'User logged in',
-          data: session,
+          session: session,
         });
       } catch (err) {
         next(err);
@@ -43,13 +43,13 @@ export function getHandlers(log) {
         const vld = signupPayloadSchema.safeParse(req.body);
         if (!vld.success) throw new BadRequestError(z.prettifyError(vld.error));
 
-        const newUser = await svcUser.signupUser(vld.data);
+        const session = await svcUser.signupUser(vld.data);
 
         res.status(codes.OK).json({
           success: true,
           status: codes.OK,
           message: 'User registered',
-          data: newUser,
+          session,
         });
       } catch (err) {
         next(err);
