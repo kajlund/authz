@@ -1,11 +1,11 @@
 import express from 'express';
 
 import { getHandlers } from './handlers.js';
-import { getAuthHandler } from './middleware/auth.js';
+import { getAuthHandlers } from './middleware/auth.js';
 
 export function getRouter(cnf, log) {
   const hnd = getHandlers(cnf, log);
-  const auth = getAuthHandler(cnf, log);
+  const { auth, isAdmin } = getAuthHandlers(cnf, log);
 
   const routeGroups = [
     {
@@ -25,6 +25,12 @@ export function getRouter(cnf, log) {
         middleware: [],
       },
       routes: [
+        {
+          method: 'get',
+          path: '/',
+          middleware: [auth, isAdmin],
+          handler: hnd.getAllUsers,
+        },
         {
           method: 'get',
           path: '/me',

@@ -22,6 +22,12 @@ function getDAO(log) {
       const [found] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
       return found;
     },
+    queryUsers: async function () {
+      const users = await db
+        .select({ id: usersTable.id, alias: usersTable.alias, email: usersTable.email, role: usersTable.role })
+        .from(usersTable);
+      return users;
+    },
   };
 }
 
@@ -58,9 +64,15 @@ export function getUserServices(cnf, log) {
         id: addedUser.id,
         alias: addedUser.alias,
         email: addedUser.email,
+        role: addedUser.role,
       };
       const session = svcSession.createJWT(userObj);
       return session;
+    },
+
+    listUsers: async function () {
+      const data = await dao.queryUsers();
+      return data;
     },
   };
 }

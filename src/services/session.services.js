@@ -27,6 +27,7 @@ export function getSessionServices(cnf, log) {
         id: user.id,
         alias: user.alias,
         email: user.email,
+        role: user.role,
       };
       const token = jwt.sign(payload, cnf.jwtSecret, { expiresIn: '24h' });
       return token;
@@ -54,6 +55,7 @@ export function getSessionServices(cnf, log) {
             userId: sessionsTable.userId,
             alias: usersTable.alias,
             email: usersTable.email,
+            role: usersTable.role,
           })
           .from(sessionsTable)
           .rightJoin(usersTable, eq(usersTable.id, sessionsTable.userId))
@@ -65,6 +67,7 @@ export function getSessionServices(cnf, log) {
             userId: data.userId,
             alias: data.alias,
             email: data.email,
+            role: data.role,
           };
         }
       }
