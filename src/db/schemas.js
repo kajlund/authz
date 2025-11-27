@@ -13,9 +13,8 @@ export const usersTable = pgTable('Users', {
   alias: varchar({ length: 50 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
   avatar: varchar({ length: 255 }).notNull().default('https://placehold.co/200x200'),
-  role: userRoleEnum().notNull().default('PROSPECT'),
   password: text().notNull(),
-  salt: text().notNull(),
+  role: userRoleEnum().notNull().default('PROSPECT'),
   verified: boolean().default(false),
   refreshToken: text().notNull().default(''),
   forgotToken: text().notNull().default(''),
@@ -23,12 +22,4 @@ export const usersTable = pgTable('Users', {
   verificationToken: text().notNull().default(''),
   verificationExpires: timestamp().notNull().defaultNow(),
   ...timestamps,
-});
-
-export const sessionsTable = pgTable('Sessions', {
-  id: uuid().primaryKey().defaultRandom(),
-  userId: uuid()
-    .references(() => usersTable.id)
-    .notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
 });

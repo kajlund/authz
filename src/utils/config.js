@@ -7,8 +7,11 @@ const configSchema = z.strictObject({
   logHttp: z.boolean().optional(),
   dbConnection: z.string().trim(),
   saltRounds: z.number().int().positive().gte(10).lte(20),
-  jwtSecret: z.string().min(30),
   corsOrigin: z.array(z.string()).optional(),
+  accessTokenSecret: z.string().min(30),
+  accessTokenExpiry: z.string(),
+  refreshTokenSecret: z.string().min(30),
+  refreshTokenExpiry: z.string(),
 });
 
 function getDefaultConfig() {
@@ -19,8 +22,11 @@ function getDefaultConfig() {
     logHttp: process.env.LOG_HTTP === '1',
     dbConnection: process.env.DB_CONNECTION,
     saltRounds: parseInt(process.env.SALT_ROUNDS),
-    jwtSecret: process.env.JWT_SECRET,
     corsOrigin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
+    accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
+    accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
+    refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
+    refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY,
   };
 }
 

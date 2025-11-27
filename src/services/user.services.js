@@ -1,11 +1,9 @@
-import { randomBytes, createHmac } from 'node:crypto';
-
 import { eq } from 'drizzle-orm';
 
 import db from '../db/index.js';
 import { usersTable } from '../db/schemas.js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors.js';
-import { getSessionServices } from './session.services.js';
+import { getAuthUtils } from '../utils/auth.utils.js';
 
 function getDAO(log) {
   return {
@@ -33,7 +31,7 @@ function getDAO(log) {
 
 export function getUserServices(cnf, log) {
   const dao = getDAO(log);
-  const svcSession = getSessionServices(cnf, log);
+  const auth = getAuthUtils(cnf, log);
 
   return {
     loginUser: async function (loginData) {
@@ -42,32 +40,38 @@ export function getUserServices(cnf, log) {
       const user = await dao.findUserByEmail(email);
       if (!user) throw new UnauthorizedError('Invalid credentials');
       // Verify pwd
-      const newHash = createHmac('sha256', user.salt).update(password).digest('hex');
-      if (newHash !== user.password) throw new UnauthorizedError('Invalid credentials');
-      // Password matched. Create session
-      // const session = await svcSession.createSession(user);
-      const session = svcSession.createJWT(user);
+      if (!auth.comparePasswords(user.password, password)) throw new UnauthorizedError('Invalid credentials');
 
-      return session;
+      // Password matched. Create session
+      const accessToken = auth.generateAccessToken(user);
+      const refreshToken = auth.generateRefreshToken(user.id);
+      return {
+        accessToken,
+        refreshToken,
+      };
     },
 
     signupUser: async function (userData) {
-      const { alias, email, password } = userData;
+      const { alias, avatar, email, password } = userData;
       // verify that email not exist
       const user = await dao.findUserByEmail(email);
       if (user) throw new BadRequestError(`email ${email} is already registered`);
       // User does not exist create new
-      const salt = randomBytes(256).toString('hex');
-      const hashedPwd = createHmac('sha256', salt).update(password).digest('hex');
-      const addedUser = await dao.addUser({ alias, email, password: hashedPwd, salt });
+      const hashedPwd = await auth.generatePasswordHash(password);
+      const addedUser = await dao.addUser({ alias, email, avatar, password: hashedPwd });
       const userObj = {
         id: addedUser.id,
         alias: addedUser.alias,
         email: addedUser.email,
+        avatar: addedUser.avatar,
         role: addedUser.role,
       };
-      const session = svcSession.createJWT(userObj);
-      return session;
+      const accessToken = auth.generateAccessToken(userObj);
+      const refreshToken = auth.generateRefreshToken(userObj.id);
+      return {
+        accessToken,
+        refreshToken,
+      };
     },
 
     listUsers: async function () {

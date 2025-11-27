@@ -1,8 +1,8 @@
-import { getSessionServices } from '../services/session.services.js';
+import { getAuthUtils } from '../utils/auth.utils.js';
 import { UnauthorizedError } from '../utils/errors.js';
 
 export function getAuthHandlers(cnf, log) {
-  const svcSession = getSessionServices(cnf, log);
+  const auth = getAuthUtils(cnf, log);
 
   return {
     checkRole: (role) => {
@@ -16,7 +16,7 @@ export function getAuthHandlers(cnf, log) {
       const authHeader = req.headers['authorization'];
       if (!authHeader.startsWith('Bearer')) next(new UnauthorizedError('Invalid creadentials'));
       const token = authHeader.split(' ')[1];
-      const verified = svcSession.verifyJWT(token);
+      const verified = auth.verifyAccessToken(token);
       if (!verified) next(new UnauthorizedError('Invalid creadentials'));
       req.user = verified;
       next();

@@ -39,12 +39,12 @@ export function getHandlers(cnf, log) {
       try {
         const vld = loginPayloadSchema.safeParse(req.body);
         if (!vld.success) throw new BadRequestError(z.prettifyError(vld.error));
-        const session = await svcUser.loginUser(vld.data);
+        const { accessToken, refreshToken } = await svcUser.loginUser(vld.data);
         res.status(codes.OK).json({
           success: true,
           status: codes.OK,
           message: 'User logged in',
-          session: session,
+          credentials: { accessToken, refreshToken },
         });
       } catch (err) {
         next(err);
@@ -56,13 +56,13 @@ export function getHandlers(cnf, log) {
         const vld = signupPayloadSchema.safeParse(req.body);
         if (!vld.success) throw new BadRequestError(z.prettifyError(vld.error));
 
-        const session = await svcUser.signupUser(vld.data);
+        const { accessToken, refreshToken } = await svcUser.signupUser(vld.data);
 
         res.status(codes.OK).json({
           success: true,
           status: codes.OK,
           message: 'User registered',
-          session,
+          credentials: { accessToken, refreshToken },
         });
       } catch (err) {
         next(err);
