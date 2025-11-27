@@ -1,6 +1,7 @@
 import express from 'express';
 
 import { getHandlers } from './handlers.js';
+import { healthCheck } from './controllers/healthcheck.controller.js';
 import { getAuthHandlers } from './middleware/auth.js';
 
 export function getRouter(cnf, log) {
@@ -16,7 +17,7 @@ export function getRouter(cnf, log) {
           method: 'get',
           path: '/ping',
           middleware: [],
-          handler: (_req, res) => res.status(200).send('pong'),
+          handler: healthCheck,
         },
       ],
     },
