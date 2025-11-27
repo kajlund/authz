@@ -16,7 +16,10 @@ export function getApp(cnf, log) {
   app.use(express.urlencoded({ extended: true, limit: '100kb' }));
   app.use(
     cors({
+      origin: cnf.corsOrigin,
       credentials: true,
+      methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Accept', 'Content-Type', 'Authorization'],
       exposedHeaders: ['set-cookie'],
     }),
   );
