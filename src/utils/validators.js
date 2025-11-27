@@ -6,7 +6,8 @@ export const loginPayloadSchema = z.strictObject({
 });
 
 export const signupPayloadSchema = z.strictObject({
-  alias: z.string().min(3).max(50).optional(),
-  email: z.email(),
-  password: z.string().min(8),
+  email: z.email().lowercase().trim(),
+  password: z.string().trim().min(8),
+  alias: z.string().min(3).max(50).trim().optional(),
+  avatar: z.url().trim().optional(),
 });
