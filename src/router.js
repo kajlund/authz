@@ -5,7 +5,8 @@ import { getAuthHandlers } from './middleware/auth.js';
 
 export function getRouter(cnf, log) {
   const hnd = getHandlers(cnf, log);
-  const { auth, isAdmin } = getAuthHandlers(cnf, log);
+  const { isAuthenticated, checkRole } = getAuthHandlers(cnf, log);
+  const requireAdmin = checkRole('ADMIN');
 
   const routeGroups = [
     {
@@ -28,13 +29,13 @@ export function getRouter(cnf, log) {
         {
           method: 'get',
           path: '/',
-          middleware: [auth, isAdmin],
+          middleware: [isAuthenticated, requireAdmin],
           handler: hnd.getAllUsers,
         },
         {
           method: 'get',
           path: '/me',
-          middleware: [auth],
+          middleware: [isAuthenticated],
           handler: hnd.getCurrentUser,
         },
         {
@@ -58,7 +59,7 @@ export function getRouter(cnf, log) {
         {
           method: 'delete',
           path: '/:id',
-          middleware: [],
+          middleware: [isAuthenticated, requireAdmin],
           handler: hnd.deleteUser,
         },
       ],
