@@ -23,6 +23,7 @@ export function getApp(cnf, log) {
       exposedHeaders: ['set-cookie'],
     }),
   );
+  app.use(express.static('public'));
 
   // Logging Middleware
   if (cnf.logHttp) {
