@@ -8,6 +8,7 @@ const configSchema = z.strictObject({
   dbConnection: z.string().trim(),
   saltRounds: z.number().int().positive().gte(10).lte(20),
   jwtSecret: z.string().min(30),
+  corsOrigin: z.array(z.string()).optional(),
 });
 
 function getDefaultConfig() {
@@ -19,6 +20,7 @@ function getDefaultConfig() {
     dbConnection: process.env.DB_CONNECTION,
     saltRounds: parseInt(process.env.SALT_ROUNDS),
     jwtSecret: process.env.JWT_SECRET,
+    corsOrigin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
   };
 }
 
