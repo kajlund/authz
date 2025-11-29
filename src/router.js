@@ -2,7 +2,7 @@ import express from 'express';
 
 import { getHandlers } from './handlers.js';
 import { healthCheck } from './controllers/healthcheck.controller.js';
-import { getAuthMiddleware } from './middleware/auth.js';
+import { getAuthMiddleware } from './middleware/auth.middleware.js';
 import { getAuthController } from './controllers/auth.controller.js';
 
 export function getRouter(cnf, log) {
@@ -33,7 +33,7 @@ export function getRouter(cnf, log) {
           method: 'get',
           path: '/me',
           middleware: [isAuthenticated],
-          handler: hnd.getCurrentUser,
+          handler: ctrlAuth.getCurrentUser,
         },
         {
           method: 'post',
@@ -44,7 +44,7 @@ export function getRouter(cnf, log) {
         {
           method: 'get',
           path: '/logout',
-          middleware: [],
+          middleware: [isAuthenticated],
           handler: ctrlAuth.logout,
         },
         {

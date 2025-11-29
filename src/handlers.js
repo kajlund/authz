@@ -21,18 +21,6 @@ export function getHandlers(cnf, log) {
         next(err);
       }
     },
-    getCurrentUser: function (req, res, next) {
-      try {
-        res.status(codes.OK).json({
-          success: true,
-          status: codes.OK,
-          message: 'Your details',
-          data: req.user,
-        });
-      } catch (err) {
-        next(err);
-      }
-    },
   };
 }
 

@@ -3,30 +3,55 @@ import { getMailer, accountVerificationEmailContent } from '../utils/emailer.js'
 import { getConflictError, getInternalError, getUnauthorizedError } from '../utils/api-error.js';
 import { getUserDAO } from '../db/user.dao.js';
 
+function _getSanitizedUser(user) {
+  const { id, alias, email, avatar, role, createdAt, updatedAt } = user;
+  return {
+    id,
+    alias,
+    email,
+    avatar,
+    role,
+    createdAt,
+    updatedAt,
+  };
+}
+
 export function getUserServices(cnf, log) {
   const dao = getUserDAO(log);
   const auth = getAuthUtils(cnf, log);
   const mailer = getMailer(cnf, log);
 
   return {
+    findUserById: async function (id) {
+      const found = await dao.findUserById(id);
+      if (!found) return null;
+      return _getSanitizedUser(found);
+    },
     loginUser: async function (loginData) {
       const { email, password } = loginData;
       // verify that user exists
-      const user = await dao.findUserByEmail(email);
-      if (!user) throw getUnauthorizedError('Invalid credentials');
+      const foundUser = await dao.findUserByEmail(email);
+      if (!foundUser) throw getUnauthorizedError('Invalid credentials');
       // Verify pwd
-      if (!auth.comparePasswords(user.password, password)) throw getUnauthorizedError('Invalid credentials');
+      if (!auth.comparePasswords(foundUser.password, password)) throw getUnauthorizedError('Invalid credentials');
 
       // Password matched. Create session
-      const accessToken = auth.generateAccessToken(user);
-      const refreshToken = auth.generateRefreshToken(user.id);
+      const accessToken = auth.generateAccessToken(foundUser);
+      const refreshToken = auth.generateRefreshToken(foundUser.id);
+
+      const user = _getSanitizedUser(foundUser);
 
       return {
+        user,
         accessToken,
         refreshToken,
       };
     },
-
+    logoutUser: async function (userId) {
+      const updatedUser = await dao.updateUser(userId, { refreshToken: '' });
+      if (!updatedUser) throw getInternalError('Logging out user failed');
+      return _getSanitizedUser(updatedUser);
+    },
     signupUser: async function (userData, verificationPath) {
       const { alias, avatar, email, password } = userData;
 
@@ -61,13 +86,7 @@ export function getUserServices(cnf, log) {
       const updatedUser = await dao.updateUser(addedUser.id, data);
       if (!updatedUser) throw getInternalError('Error generating tokens for user');
 
-      const userObj = {
-        id: addedUser.id,
-        alias: addedUser.alias,
-        email: addedUser.email,
-        avatar: addedUser.avatar,
-        role: addedUser.role,
-      };
+      const userObj = _getSanitizedUser(updatedUser);
 
       // Send account verification email
       const verificationUrl = `${verificationPath}/${verificationToken}`;

@@ -1,3 +1,4 @@
+import { asyncHandler } from '../utils/async-handler.js';
 import { getAuthUtils } from '../utils/auth.utils.js';
 import { getUnauthorizedError } from '../utils/api-error.js';
 
@@ -11,15 +12,17 @@ export function getAuthMiddleware(cnf, log) {
         next(getUnauthorizedError(`You are not autorized for this route as a user with role ${req.user?.role}`));
       };
     },
-    isAuthenticated: async (req, res, next) => {
-      // const user = await svcSession.checkSession(req.headers['x-session']);
-      const authHeader = req.headers['authorization'];
-      if (!authHeader.startsWith('Bearer')) next(getUnauthorizedError('Invalid creadentials'));
-      const token = authHeader.split(' ')[1];
+    isAuthenticated: asyncHandler(async (req, res, next) => {
+      // Ensure we have a token or throw unauhtorized error
+      const token = req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer ', '');
+      if (!token) throw getUnauthorizedError('Invalid creadentials');
+      // Verify token or throw unauhtorized error
       const verified = auth.verifyAccessToken(token);
+
+      // If verified add user info to request
       if (!verified) next(getUnauthorizedError('Invalid creadentials'));
       req.user = verified;
       next();
-    },
+    }),
   };
 }
