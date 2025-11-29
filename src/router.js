@@ -53,6 +53,18 @@ export function getRouter(cnf, log) {
           middleware: [],
           handler: ctrlAuth.register,
         },
+        {
+          method: 'get',
+          path: '/resend-verification',
+          middleware: [isAuthenticated],
+          handler: ctrlAuth.resendVerifyEmail,
+        },
+        {
+          method: 'get',
+          path: '/verify/:token',
+          middleware: [],
+          handler: ctrlAuth.verifyEmail,
+        },
       ],
     },
     {

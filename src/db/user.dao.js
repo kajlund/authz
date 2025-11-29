@@ -21,6 +21,10 @@ export function getUserDAO(log) {
       const [found] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
       return found;
     },
+    findByVerificationToken: async function (token) {
+      const [found] = await db.select().from(usersTable).where(eq(usersTable.verificationToken, token)).limit(1);
+      return found;
+    },
     queryUsers: async function () {
       const users = await db
         .select({ id: usersTable.id, alias: usersTable.alias, email: usersTable.email, role: usersTable.role })

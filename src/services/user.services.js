@@ -1,6 +1,6 @@
 import { getAuthUtils } from '../utils/auth.utils.js';
 import { getMailer, accountVerificationEmailContent } from '../utils/emailer.js';
-import { getConflictError, getInternalError, getUnauthorizedError } from '../utils/api-error.js';
+import { getConflictError, getInternalError, getNotFoundError, getUnauthorizedError } from '../utils/api-error.js';
 import { getUserDAO } from '../db/user.dao.js';
 
 function _getSanitizedUser(user) {
@@ -52,12 +52,34 @@ export function getUserServices(cnf, log) {
       if (!updatedUser) throw getInternalError('Logging out user failed');
       return _getSanitizedUser(updatedUser);
     },
+    resendVerification: async function (userId, verificationPath) {
+      const user = await dao.findUserById(userId);
+      if (!user) throw getNotFoundError('User not found');
+      if (user.verified) throw getConflictError(`User ${user.alias} is already verified`);
+      // Create new temp token
+      const token = auth.generateTemporaryToken();
+      const data = {
+        verificationToken: token.hashedToken,
+        verificationExpires: new Date(token.tokenExpiry),
+      };
+      const updatedUser = await dao.updateUser(user.id, data);
+      if (!updatedUser) throw getInternalError('Error updating verification token');
+
+      // Send account verification email
+      const verificationUrl = `${verificationPath}/${token.unhashedToken}`;
+      mailer.sendMail({
+        verificationUrl: updatedUser.email,
+        subject: 'Verify account',
+        mailGenContent: accountVerificationEmailContent(updatedUser.alias, verificationUrl),
+      });
+      return { verificationUrl };
+    },
     signupUser: async function (userData, verificationPath) {
       const { alias, avatar, email, password } = userData;
 
       // verify that email not exist
       const user = await dao.findUserByEmail(email);
-      if (user) throw new getConflictError(`email ${email} is already registered`);
+      if (user) throw getConflictError(`email ${email} is already registered`);
 
       // User does not exist
       // Create hashes, token and JWTs
@@ -89,7 +111,7 @@ export function getUserServices(cnf, log) {
       const userObj = _getSanitizedUser(updatedUser);
 
       // Send account verification email
-      const verificationUrl = `${verificationPath}/${verificationToken}`;
+      const verificationUrl = `${verificationPath}/${token.unhashedToken}`;
       mailer.sendMail({
         email: userObj.email,
         subject: 'Verify account',
@@ -106,6 +128,18 @@ export function getUserServices(cnf, log) {
     listUsers: async function () {
       const data = await dao.queryUsers();
       return data;
+    },
+
+    verifyAccount: async function (token) {
+      const now = new Date();
+      const hashedToken = auth.createHashedToken(token);
+      const user = await dao.findByVerificationToken(hashedToken);
+      if (!user || user.verificationExpires < now) return false;
+
+      const updatedUser = await dao.updateUser(user.id, { verified: true });
+      if (!updatedUser) return false;
+
+      return true;
     },
   };
 }

@@ -8,6 +8,10 @@ export function getAuthUtils(cnf, log) {
     comparePasswords: async (pwd, hash) => {
       return await bcrypt.compare(pwd, hash);
     },
+    createHashedToken: (token) => {
+      const hashedToken = createHash('sha256').update(token).digest('hex');
+      return hashedToken;
+    },
     generateAccessToken: (user) => {
       const payload = {
         id: user.id,

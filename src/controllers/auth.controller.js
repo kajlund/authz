@@ -40,12 +40,25 @@ export function getAuthController(cnf, log) {
         .json(new ApiResponse(codes.OK, data, `User ${data.alias} logged out`));
     }),
     register: asyncHandler(async (req, res) => {
-      const verificationPath = `${req.protocol}://${req.get('host')}/api/v1/users/verify-email`;
+      const verificationPath = `${req.protocol}://${req.get('host')}/api/v1/auth/verify`;
       const vld = signupPayloadSchema.safeParse(req.body);
       if (!vld.success) throw getBadRequestError('Faulty user data', vld.error);
       const data = await svcUser.signupUser(vld.data, verificationPath);
 
       res.status(codes.CREATED).json(new ApiResponse(codes.CREATED, data, `User successfully registered`));
+    }),
+    resendVerifyEmail: asyncHandler(async (req, res) => {
+      const verificationPath = `${req.protocol}://${req.get('host')}/api/v1/auth/verify`;
+      const data = await svcUser.resendVerification(req.user.id, verificationPath);
+      res.status(codes.OK).json(new ApiResponse(codes.OK, data, 'Verification email was sent'));
+    }),
+    verifyEmail: asyncHandler(async (req, res) => {
+      const { token } = req.params;
+      if (!token) throw getBadRequestError('Email verification token missing');
+      const verified = await svcUser.verifyAccount(token);
+      if (!verified) throw getBadRequestError('Token is invalid or has expired');
+
+      res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'User account verified'));
     }),
   };
 }
