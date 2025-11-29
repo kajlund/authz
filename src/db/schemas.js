@@ -1,9 +1,9 @@
 import { boolean, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+// import { sql } from 'drizzle-orm';
 
 const timestamps = {
-  updatedAt: timestamp(),
-  createdAt: timestamp().defaultNow().notNull(),
-  deletedAt: timestamp(),
+  createdAt: timestamp('createdAt', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
 };
 
 export const userRoleEnum = pgEnum('user_role', ['PROSPECT', 'USER', 'ADMIN']);

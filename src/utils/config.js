@@ -12,6 +12,10 @@ const configSchema = z.strictObject({
   accessTokenExpiry: z.string(),
   refreshTokenSecret: z.string().min(30),
   refreshTokenExpiry: z.string(),
+  smtpHost: z.string(),
+  smtpPort: z.number().int().positive(),
+  smtpUser: z.string(),
+  smtpPass: z.string(),
 });
 
 function getDefaultConfig() {
@@ -27,6 +31,10 @@ function getDefaultConfig() {
     accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
     refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY,
+    smtpHost: process.env.SMTP_HOST,
+    smtpPort: parseInt(process.env.SMTP_PORT),
+    smtpUser: process.env.SMTP_USER,
+    smtpPass: process.env.SMTP_PASS,
   };
 }
 

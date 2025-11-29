@@ -13,6 +13,7 @@ export function getAuthUtils(cnf, log) {
         id: user.id,
         alias: user.alias,
         email: user.email,
+        avatar: user.avatar,
         role: user.role,
       };
       const token = jwt.sign(payload, cnf.accessTokenSecret, { expiresIn: cnf.accessTokenExpiry });

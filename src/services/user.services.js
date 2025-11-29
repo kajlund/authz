@@ -1,64 +1,66 @@
-import { eq } from 'drizzle-orm';
-
-import db from '../db/index.js';
-import { usersTable } from '../db/schemas.js';
-import { BadRequestError, UnauthorizedError } from '../utils/errors.js';
 import { getAuthUtils } from '../utils/auth.utils.js';
-
-function getDAO(log) {
-  return {
-    addUser: async function (data) {
-      const [newUser] = await db.insert(usersTable).values(data).returning();
-      log.debug(newUser, 'Created user');
-      return newUser;
-    },
-    findUserByEmail: async function (email) {
-      const [found] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
-      return found;
-    },
-    findUserById: async function (id) {
-      const [found] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
-      return found;
-    },
-    queryUsers: async function () {
-      const users = await db
-        .select({ id: usersTable.id, alias: usersTable.alias, email: usersTable.email, role: usersTable.role })
-        .from(usersTable);
-      return users;
-    },
-  };
-}
+import { getMailer, accountVerificationEmailContent } from '../utils/emailer.js';
+import { getConflictError, getInternalError, getUnauthorizedError } from '../utils/api-error.js';
+import { getUserDAO } from '../db/user.dao.js';
 
 export function getUserServices(cnf, log) {
-  const dao = getDAO(log);
+  const dao = getUserDAO(log);
   const auth = getAuthUtils(cnf, log);
+  const mailer = getMailer(cnf, log);
 
   return {
     loginUser: async function (loginData) {
       const { email, password } = loginData;
       // verify that user exists
       const user = await dao.findUserByEmail(email);
-      if (!user) throw new UnauthorizedError('Invalid credentials');
+      if (!user) throw getUnauthorizedError('Invalid credentials');
       // Verify pwd
-      if (!auth.comparePasswords(user.password, password)) throw new UnauthorizedError('Invalid credentials');
+      if (!auth.comparePasswords(user.password, password)) throw getUnauthorizedError('Invalid credentials');
 
       // Password matched. Create session
       const accessToken = auth.generateAccessToken(user);
       const refreshToken = auth.generateRefreshToken(user.id);
+
       return {
         accessToken,
         refreshToken,
       };
     },
 
-    signupUser: async function (userData) {
+    signupUser: async function (userData, verificationPath) {
       const { alias, avatar, email, password } = userData;
+
       // verify that email not exist
       const user = await dao.findUserByEmail(email);
-      if (user) throw new BadRequestError(`email ${email} is already registered`);
-      // User does not exist create new
+      if (user) throw new getConflictError(`email ${email} is already registered`);
+
+      // User does not exist
+      // Create hashes, token and JWTs
       const hashedPwd = await auth.generatePasswordHash(password);
-      const addedUser = await dao.addUser({ alias, email, avatar, password: hashedPwd });
+      const token = auth.generateTemporaryToken();
+
+      // create new user
+      const addedUser = await dao.addUser({
+        alias,
+        email,
+        avatar,
+        password: hashedPwd,
+      });
+      if (!addedUser) throw getInternalError('Error registering user');
+
+      // Generate tokens
+      const verificationToken = token.hashedToken;
+      const verificationExpires = new Date(token.tokenExpiry);
+      const accessToken = auth.generateAccessToken(addedUser);
+      const refreshToken = auth.generateRefreshToken(addedUser.id);
+      const data = {
+        verificationToken,
+        verificationExpires,
+        refreshToken,
+      };
+      const updatedUser = await dao.updateUser(addedUser.id, data);
+      if (!updatedUser) throw getInternalError('Error generating tokens for user');
+
       const userObj = {
         id: addedUser.id,
         alias: addedUser.alias,
@@ -66,9 +68,17 @@ export function getUserServices(cnf, log) {
         avatar: addedUser.avatar,
         role: addedUser.role,
       };
-      const accessToken = auth.generateAccessToken(userObj);
-      const refreshToken = auth.generateRefreshToken(userObj.id);
+
+      // Send account verification email
+      const verificationUrl = `${verificationPath}/${verificationToken}`;
+      mailer.sendMail({
+        email: userObj.email,
+        subject: 'Verify account',
+        mailGenContent: accountVerificationEmailContent(userObj.alias, verificationUrl),
+      });
+
       return {
+        user: userObj,
         accessToken,
         refreshToken,
       };

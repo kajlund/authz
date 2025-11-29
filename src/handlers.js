@@ -35,39 +35,6 @@ export function getHandlers(cnf, log) {
         next(err);
       }
     },
-    loginUser: async function (req, res, next) {
-      try {
-        const vld = loginPayloadSchema.safeParse(req.body);
-        if (!vld.success) throw new BadRequestError(z.prettifyError(vld.error));
-        const { accessToken, refreshToken } = await svcUser.loginUser(vld.data);
-        res.status(codes.OK).json({
-          success: true,
-          status: codes.OK,
-          message: 'User logged in',
-          credentials: { accessToken, refreshToken },
-        });
-      } catch (err) {
-        next(err);
-      }
-    },
-    logoutUser,
-    signupUser: async function (req, res, next) {
-      try {
-        const vld = signupPayloadSchema.safeParse(req.body);
-        if (!vld.success) throw new BadRequestError(z.prettifyError(vld.error));
-
-        const { accessToken, refreshToken } = await svcUser.signupUser(vld.data);
-
-        res.status(codes.OK).json({
-          success: true,
-          status: codes.OK,
-          message: 'User registered',
-          credentials: { accessToken, refreshToken },
-        });
-      } catch (err) {
-        next(err);
-      }
-    },
   };
 }
 

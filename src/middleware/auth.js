@@ -1,7 +1,7 @@
 import { getAuthUtils } from '../utils/auth.utils.js';
 import { UnauthorizedError } from '../utils/errors.js';
 
-export function getAuthHandlers(cnf, log) {
+export function getAuthMiddleware(cnf, log) {
   const auth = getAuthUtils(cnf, log);
 
   return {

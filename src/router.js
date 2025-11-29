@@ -2,11 +2,13 @@ import express from 'express';
 
 import { getHandlers } from './handlers.js';
 import { healthCheck } from './controllers/healthcheck.controller.js';
-import { getAuthHandlers } from './middleware/auth.js';
+import { getAuthMiddleware } from './middleware/auth.js';
+import { getAuthController } from './controllers/auth.controller.js';
 
 export function getRouter(cnf, log) {
   const hnd = getHandlers(cnf, log);
-  const { isAuthenticated, checkRole } = getAuthHandlers(cnf, log);
+  const ctrlAuth = getAuthController(cnf, log);
+  const { isAuthenticated, checkRole } = getAuthMiddleware(cnf, log);
   const requireAdmin = checkRole('ADMIN');
 
   const routeGroups = [
@@ -23,16 +25,10 @@ export function getRouter(cnf, log) {
     },
     {
       group: {
-        prefix: '/users',
+        prefix: '/api/v1/auth',
         middleware: [],
       },
       routes: [
-        {
-          method: 'get',
-          path: '/',
-          middleware: [isAuthenticated, requireAdmin],
-          handler: hnd.getAllUsers,
-        },
         {
           method: 'get',
           path: '/me',
@@ -41,21 +37,35 @@ export function getRouter(cnf, log) {
         },
         {
           method: 'post',
-          path: '/logout',
-          middleware: [],
-          handler: hnd.logoutUser,
-        },
-        {
-          method: 'post',
           path: '/login',
           middleware: [],
-          handler: hnd.loginUser,
+          handler: ctrlAuth.login,
+        },
+        {
+          method: 'get',
+          path: '/logout',
+          middleware: [],
+          handler: ctrlAuth.logout,
         },
         {
           method: 'post',
-          path: '/signup',
+          path: '/register',
           middleware: [],
-          handler: hnd.signupUser,
+          handler: ctrlAuth.register,
+        },
+      ],
+    },
+    {
+      group: {
+        prefix: '/api/v1/users',
+        middleware: [],
+      },
+      routes: [
+        {
+          method: 'get',
+          path: '/',
+          middleware: [isAuthenticated, requireAdmin],
+          handler: hnd.getAllUsers,
         },
         {
           method: 'delete',
