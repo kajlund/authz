@@ -3,8 +3,6 @@ import { z } from 'zod';
 
 import { codes, phrases } from './utils/status.js';
 import { getUserServices } from './services/user.services.js';
-import { loginPayloadSchema, signupPayloadSchema } from './utils/validators.js';
-import { BadRequestError } from './utils/errors.js';
 
 export function getHandlers(cnf, log) {
   const svcUser = getUserServices(cnf, log);
@@ -39,9 +37,5 @@ export function getHandlers(cnf, log) {
 }
 
 function deleteUser(req, res, next) {
-  res.status(codes.NOT_IMPLEMENTED).send(phrases.NOT_IMPLEMENTED);
-}
-
-function logoutUser(req, res, next) {
   res.status(codes.NOT_IMPLEMENTED).send(phrases.NOT_IMPLEMENTED);
 }
