@@ -33,7 +33,8 @@ export function getUserServices(cnf, log) {
       const foundUser = await dao.findUserByEmail(email);
       if (!foundUser) throw getUnauthorizedError('Invalid credentials');
       // Verify pwd
-      if (!auth.comparePasswords(foundUser.password, password)) throw getUnauthorizedError('Invalid credentials');
+      const pwdOK = await auth.comparePasswords(password, foundUser.password);
+      if (!pwdOK) throw getUnauthorizedError('Invalid credentials');
 
       // Password matched. Create session
       const accessToken = auth.generateAccessToken(foundUser);
