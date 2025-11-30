@@ -1,13 +1,13 @@
 import express from 'express';
 
-import { getHandlers } from './handlers.js';
 import { healthCheck } from './controllers/healthcheck.controller.js';
 import { getAuthMiddleware } from './middleware/auth.middleware.js';
 import { getAuthController } from './controllers/auth.controller.js';
+import { getUserController } from './controllers/user.controller.js';
 
 export function getRouter(cnf, log) {
-  const hnd = getHandlers(cnf, log);
   const ctrlAuth = getAuthController(cnf, log);
+  const ctrlUser = getUserController(cnf, log);
   const { isAuthenticated, checkRole } = getAuthMiddleware(cnf, log);
   const requireAdmin = checkRole('ADMIN');
 
@@ -101,13 +101,13 @@ export function getRouter(cnf, log) {
           method: 'get',
           path: '/',
           middleware: [isAuthenticated, requireAdmin],
-          handler: hnd.getAllUsers,
+          handler: ctrlUser.queryUsers,
         },
         {
           method: 'delete',
           path: '/:id',
           middleware: [isAuthenticated, requireAdmin],
-          handler: hnd.deleteUser,
+          handler: ctrlUser.deleteUser,
         },
       ],
     },

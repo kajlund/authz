@@ -24,30 +24,39 @@ class ApiError extends Error {
   }
 }
 
-export function getBadRequestError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.BAD_REQUEST, phrases.BAD_REQUEST, detail, errors, stack);
+export class BadRequestError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.BAD_REQUEST, phrases.BAD_REQUEST, detail, errors, stack);
+  }
 }
 
-export function getConflictError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.CONFLICT, phrases.CONFLICT, detail, errors, stack);
+export class ConflictError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.CONFLICT, phrases.CONFLICT, detail, errors, stack);
+  }
 }
-
-export function getForbiddenError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.FORBIDDEN, phrases.FORBIDDEN, detail, errors, stack);
+export class ForbiddenError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.FORBIDDEN, phrases.FORBIDDEN, detail, errors, stack);
+  }
 }
-
-export function getInternalError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.INTERNAL_SERVER_ERROR, phrases.INTERNAL_SERVER_ERROR, detail, errors, stack);
+export class InternalServerError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.INTERNAL_SERVER_ERROR, phrases.INTERNAL_SERVER_ERROR, detail, errors, stack);
+  }
 }
-
-export function getNotFoundError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.NOT_FOUND, phrases.NOT_FOUND, detail, errors, stack);
+export class NotFoundError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.NOT_FOUND, phrases.NOT_FOUND, detail, errors, stack);
+  }
 }
-
-export function getNotImplementedError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.NOT_IMPLEMENTED, phrases.NOT_IMPLEMENTED, detail, errors, stack);
+export class NotImplementedError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.NOT_IMPLEMENTED, phrases.NOT_IMPLEMENTED, detail, errors, stack);
+  }
 }
-
-export function getUnauthorizedError(detail = '', errors = [], stack = '') {
-  return new ApiError(codes.UNAUTHORIZED, phrases.UNAUTHORIZED, detail, errors, stack);
+export class UnauthorizedError extends ApiError {
+  constructor(detail = '', errors = [], stack = '') {
+    super(codes.UNAUTHORIZED, phrases.UNAUTHORIZED, detail, errors, stack);
+  }
 }

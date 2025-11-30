@@ -1,4 +1,4 @@
-import { getBadRequestError, getNotFoundError, getUnauthorizedError } from '../utils/api-error.js';
+import { BadRequestError } from '../utils/api-error.js';
 import { ApiResponse } from '../utils/api-response.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { getUserServices } from '../services/user.services.js';
@@ -9,26 +9,22 @@ export function getAuthController(cnf, log) {
   const svcUser = getUserServices(cnf, log);
 
   return {
-    changePassword: async (req, res, next) => {
+    changePassword: asyncHandler(async (req, res) => {
       const { oldPassword, newPassword, confirmPassword } = req.body;
-      try {
-        await svcUser.changePassword(req.user.id, oldPassword, newPassword, confirmPassword);
+      await svcUser.changePassword(req.user.id, oldPassword, newPassword, confirmPassword);
 
-        res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));
-      } catch (err) {
-        next(err);
-      }
-    },
+      res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));
+    }),
     getCurrentUser: asyncHandler(async (req, res) => {
       const user = await svcUser.findUserById(req.user.id);
-      if (!user) throw getNotFoundError(`User with id ${req.user.id} could not be found`);
 
       res.status(codes.OK).json(new ApiResponse(codes.OK, { data: user }, `User information for ${user.alias}`));
     }),
     login: asyncHandler(async (req, res) => {
       const vld = loginPayloadSchema.safeParse(req.body);
-      if (!vld.success) throw getBadRequestError('Faulty login data', vld.error);
+      if (!vld.success) throw new BadRequestError('Faulty login data', vld.error);
       const data = await svcUser.loginUser(vld.data);
+
       // Return response and set cookies
       const opt = { httpOnly: true, secure: true };
       res
@@ -51,8 +47,6 @@ export function getAuthController(cnf, log) {
     }),
     refreshAccessToken: asyncHandler(async (req, res) => {
       const token = req.cookies.refreshToken || req.body?.refreshtoken;
-      if (!token) throw getUnauthorizedError('Invalid token');
-
       const data = await svcUser.refreshAccessToken(token);
       const opt = { httpOnly: true, secure: true };
       res
@@ -64,7 +58,7 @@ export function getAuthController(cnf, log) {
     register: asyncHandler(async (req, res) => {
       const verificationPath = `${req.protocol}://${req.get('host')}/api/v1/auth/verify`;
       const vld = signupPayloadSchema.safeParse(req.body);
-      if (!vld.success) throw getBadRequestError('Faulty user data', vld.error);
+      if (!vld.success) throw new BadRequestError('Faulty user data', vld.error);
       const data = await svcUser.signupUser(vld.data, verificationPath);
 
       res.status(codes.CREATED).json(new ApiResponse(codes.CREATED, data, `User successfully registered`));
@@ -86,15 +80,13 @@ export function getAuthController(cnf, log) {
       const { email } = req.body;
       const data = await svcUser.sendPasswordResetEmail(email, resetPath);
 
-      res.status(codes.OK).json(new ApiResponse(codes.OK, { data }, 'Password reset email has been sent'));
+      res.status(codes.OK).json(new ApiResponse(codes.OK, data, 'Password reset email has been sent'));
     }),
     verifyEmail: asyncHandler(async (req, res) => {
       const { token } = req.params;
-      if (!token) throw getBadRequestError('Email verification token missing');
-      const verified = await svcUser.verifyAccount(token);
-      if (!verified) throw getBadRequestError('Token is invalid or has expired');
+      const user = await svcUser.verifyAccount(token);
 
-      res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'User account verified'));
+      res.status(codes.OK).json(new ApiResponse(codes.OK, { user }, 'User account verified'));
     }),
   };
 }

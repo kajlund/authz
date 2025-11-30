@@ -19,18 +19,14 @@ export function getMailer(cnf, log) {
       });
       const emailText = mailGenerator.generatePlaintext(options.mailGenContent);
       const emailHtml = mailGenerator.generate(options.mailGenContent);
-      try {
-        const info = await transport.sendMail({
-          from: 'support.myapp.com',
-          to: options.email,
-          subject: options.subject,
-          text: emailText,
-          html: emailHtml,
-        });
-        log.info(info, 'email sent');
-      } catch (err) {
-        log.error(err, 'Sending email failed');
-      }
+      const info = await transport.sendMail({
+        from: 'support.myapp.com',
+        to: options.email,
+        subject: options.subject,
+        text: emailText,
+        html: emailHtml,
+      });
+      log.debug(info, 'email sent');
     },
   };
 }
