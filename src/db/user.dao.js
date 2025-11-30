@@ -21,6 +21,10 @@ export function getUserDAO(log) {
       const [found] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
       return found;
     },
+    findByForgotToken: async function (token) {
+      const [found] = await db.select().from(usersTable).where(eq(usersTable.forgotToken, token)).limit(1);
+      return found;
+    },
     findByVerificationToken: async function (token) {
       const [found] = await db.select().from(usersTable).where(eq(usersTable.verificationToken, token)).limit(1);
       return found;

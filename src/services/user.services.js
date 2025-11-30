@@ -1,6 +1,12 @@
 import { getAuthUtils } from '../utils/auth.utils.js';
-import { getMailer, accountVerificationEmailContent } from '../utils/emailer.js';
-import { getConflictError, getInternalError, getNotFoundError, getUnauthorizedError } from '../utils/api-error.js';
+import { getMailer, accountVerificationEmailContent, forgotPasswordEmailContent } from '../utils/emailer.js';
+import {
+  getBadRequestError,
+  getConflictError,
+  getInternalError,
+  getNotFoundError,
+  getUnauthorizedError,
+} from '../utils/api-error.js';
 import { getUserDAO } from '../db/user.dao.js';
 
 function _getSanitizedUser(user) {
@@ -101,6 +107,42 @@ export function getUserServices(cnf, log) {
       });
       return { verificationUrl };
     },
+    resetPassword: async function (token, pwd, pwdConfirm) {
+      if (pwd !== pwdConfirm) throw getBadRequestError('Passwords do not match');
+      const hashedToken = auth.createHashedToken(token);
+      const user = await dao.findByForgotToken(hashedToken);
+      const now = new Date();
+      if (!user || !user.verificationExpires > now) throw getBadRequestError('Token is invalid or has expired');
+
+      const hashedPwd = await auth.generatePasswordHash(pwd);
+      const data = { forgotToken: '', forgotExpires: null, password: hashedPwd };
+      const updatedUser = await dao.updateUser(user.id, data);
+      if (!updatedUser) throw getInternalError('Error updating user password');
+    },
+    sendPasswordResetEmail: async function (email, resetPath) {
+      const user = await dao.findUserByEmail(email);
+      if (!user) throw getNotFoundError(`Email ${email} is not registered`);
+      const token = auth.generateTemporaryToken();
+      const data = {
+        forgotToken: token.hashedToken,
+        forgotExpires: new Date(token.tokenExpiry),
+      };
+      const updatedUser = await dao.updateUser(user.id, data);
+      if (!updatedUser) throw getInternalError('Error generating tokens for user');
+
+      const userObj = _getSanitizedUser(updatedUser);
+      // Send passord reset email
+      const resetUrl = `${resetPath}/${token.unhashedToken}`;
+      mailer.sendMail({
+        email: userObj.email,
+        subject: 'Reset password',
+        mailGenContent: forgotPasswordEmailContent(userObj.alias, resetUrl),
+      });
+
+      return {
+        resetPasswordURL: resetUrl,
+      };
+    },
     signupUser: async function (userData, verificationPath) {
       const { alias, avatar, email, password } = userData;
 
@@ -125,6 +167,7 @@ export function getUserServices(cnf, log) {
       // Generate tokens
       const verificationToken = token.hashedToken;
       const verificationExpires = new Date(token.tokenExpiry);
+
       const accessToken = auth.generateAccessToken(addedUser);
       const refreshToken = auth.generateRefreshToken(addedUser.id);
       const data = {

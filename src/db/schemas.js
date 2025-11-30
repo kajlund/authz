@@ -18,8 +18,8 @@ export const usersTable = pgTable('Users', {
   verified: boolean().default(false),
   refreshToken: text().notNull().default(''),
   forgotToken: text().notNull().default(''),
-  forgotExpires: timestamp().notNull().defaultNow(),
+  forgotExpires: timestamp(),
   verificationToken: text().notNull().default(''),
-  verificationExpires: timestamp().notNull().defaultNow(),
+  verificationExpires: timestamp(),
   ...timestamps,
 });

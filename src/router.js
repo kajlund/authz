@@ -60,6 +60,18 @@ export function getRouter(cnf, log) {
           handler: ctrlAuth.register,
         },
         {
+          method: 'post',
+          path: '/requestpwdchange',
+          middleware: [],
+          handler: ctrlAuth.sendPasswordResetMail,
+        },
+        {
+          method: 'post',
+          path: '/resetpassword/:token',
+          middleware: [],
+          handler: ctrlAuth.resetPassword,
+        },
+        {
           method: 'get',
           path: '/resend-verification',
           middleware: [isAuthenticated],

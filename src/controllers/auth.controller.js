@@ -64,6 +64,20 @@ export function getAuthController(cnf, log) {
       const data = await svcUser.resendVerification(req.user.id, verificationPath);
       res.status(codes.OK).json(new ApiResponse(codes.OK, data, 'Verification email was sent'));
     }),
+    resetPassword: asyncHandler(async (req, res) => {
+      const { token } = req.params;
+      const { newPassword, confirmPassword } = req.body;
+      await svcUser.resetPassword(token, newPassword, confirmPassword);
+
+      res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));
+    }),
+    sendPasswordResetMail: asyncHandler(async (req, res) => {
+      const resetPath = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword`;
+      const { email } = req.body;
+      const data = await svcUser.sendPasswordResetEmail(email, resetPath);
+
+      res.status(codes.OK).json(new ApiResponse(codes.OK, { data }, 'Password reset email has been sent'));
+    }),
     verifyEmail: asyncHandler(async (req, res) => {
       const { token } = req.params;
       if (!token) throw getBadRequestError('Email verification token missing');
