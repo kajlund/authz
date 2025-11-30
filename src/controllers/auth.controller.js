@@ -10,9 +10,9 @@ export function getAuthController(cnf, log) {
 
   return {
     changePassword: async (req, res, next) => {
-      const { newPassword, confirmPassword } = req.body;
+      const { oldPassword, newPassword, confirmPassword } = req.body;
       try {
-        await svcUser.changePassword(req.user.id, newPassword, confirmPassword);
+        await svcUser.changePassword(req.user.id, oldPassword, newPassword, confirmPassword);
 
         res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));
       } catch (err) {
