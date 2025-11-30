@@ -39,7 +39,10 @@ export function getUserServices(cnf, log) {
       const accessToken = auth.generateAccessToken(foundUser);
       const refreshToken = auth.generateRefreshToken(foundUser.id);
 
-      const user = _getSanitizedUser(foundUser);
+      const updatedUser = await dao.updateUser(foundUser.id, { refreshToken });
+      if (!updatedUser) throw getInternalError('Error generating tokens for user');
+
+      const user = _getSanitizedUser(updatedUser);
 
       return {
         user,
@@ -51,6 +54,29 @@ export function getUserServices(cnf, log) {
       const updatedUser = await dao.updateUser(userId, { refreshToken: '' });
       if (!updatedUser) throw getInternalError('Logging out user failed');
       return _getSanitizedUser(updatedUser);
+    },
+    refreshAccessToken: async function (token) {
+      // Validate refresh token
+      const incomingRefreshToken = auth.verifyRefreshToken(token);
+      if (!incomingRefreshToken) throw getUnauthorizedError('Invalid refresh token');
+
+      const user = await dao.findUserById(incomingRefreshToken.id);
+      if (!user) throw getUnauthorizedError('Invalid refresh token');
+
+      if (token !== user.refreshToken) throw getUnauthorizedError('Refresh token has expired');
+
+      const accessToken = auth.generateAccessToken(user);
+      const refreshToken = auth.generateRefreshToken(user.id);
+      const updatedUser = await dao.updateUser(user.id, { refreshToken });
+      if (!updatedUser) throw getInternalError('Error generating tokens for user');
+
+      const userObj = _getSanitizedUser(updatedUser);
+
+      return {
+        user: userObj,
+        accessToken,
+        refreshToken,
+      };
     },
     resendVerification: async function (userId, verificationPath) {
       const user = await dao.findUserById(userId);

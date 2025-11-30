@@ -1,4 +1,4 @@
-import { getBadRequestError, getNotFoundError } from '../utils/api-error.js';
+import { getBadRequestError, getNotFoundError, getUnauthorizedError } from '../utils/api-error.js';
 import { ApiResponse } from '../utils/api-response.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { getUserServices } from '../services/user.services.js';
@@ -38,6 +38,18 @@ export function getAuthController(cnf, log) {
         .clearCookie('accessToken', opt)
         .clearCookie('refreshToken', opt)
         .json(new ApiResponse(codes.OK, data, `User ${data.alias} logged out`));
+    }),
+    refreshAccessToken: asyncHandler(async (req, res) => {
+      const token = req.cookies.refreshToken || req.body?.refreshtoken;
+      if (!token) throw getUnauthorizedError('Invalid token');
+
+      const data = await svcUser.refreshAccessToken(token);
+      const opt = { httpOnly: true, secure: true };
+      res
+        .status(codes.OK)
+        .cookie('accessToken', data.accessToken, opt)
+        .cookie('refreshToken', data.refreshToken, opt)
+        .json(new ApiResponse(codes.OK, data, 'Tokens refreshed'));
     }),
     register: asyncHandler(async (req, res) => {
       const verificationPath = `${req.protocol}://${req.get('host')}/api/v1/auth/verify`;

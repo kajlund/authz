@@ -49,6 +49,12 @@ export function getRouter(cnf, log) {
         },
         {
           method: 'post',
+          path: '/refresh',
+          middleware: [isAuthenticated],
+          handler: ctrlAuth.refreshAccessToken,
+        },
+        {
+          method: 'post',
           path: '/register',
           middleware: [],
           handler: ctrlAuth.register,
