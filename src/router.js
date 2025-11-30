@@ -30,6 +30,12 @@ export function getRouter(cnf, log) {
       },
       routes: [
         {
+          method: 'post',
+          path: '/changepassword',
+          middleware: [isAuthenticated],
+          handler: ctrlAuth.changePassword,
+        },
+        {
           method: 'get',
           path: '/me',
           middleware: [isAuthenticated],

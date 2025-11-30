@@ -9,6 +9,16 @@ export function getAuthController(cnf, log) {
   const svcUser = getUserServices(cnf, log);
 
   return {
+    changePassword: async (req, res, next) => {
+      const { newPassword, confirmPassword } = req.body;
+      try {
+        await svcUser.changePassword(req.user.id, newPassword, confirmPassword);
+
+        res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));
+      } catch (err) {
+        next(err);
+      }
+    },
     getCurrentUser: asyncHandler(async (req, res) => {
       const user = await svcUser.findUserById(req.user.id);
       if (!user) throw getNotFoundError(`User with id ${req.user.id} could not be found`);

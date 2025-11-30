@@ -28,6 +28,14 @@ export function getUserServices(cnf, log) {
   const mailer = getMailer(cnf, log);
 
   return {
+    changePassword: async function (id, pwd, confirm) {
+      if (pwd !== confirm) throw getBadRequestError('Passwords do not match');
+      const found = await dao.findUserById(id);
+      if (!found) throw getNotFoundError('User not found trying to change password');
+      const hashedPwd = await auth.generatePasswordHash(pwd);
+      const updatedUser = await dao.updateUser(found.id, { password: hashedPwd });
+      if (!updatedUser) throw getInternalError('Error updating user password');
+    },
     findUserById: async function (id) {
       const found = await dao.findUserById(id);
       if (!found) return null;
