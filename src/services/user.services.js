@@ -231,7 +231,11 @@ export function getUserServices(cnf, log) {
       const user = await dao.findByVerificationToken(hashedToken);
       if (!user || user.verificationExpires < now) throw new BadRequestError('Token is invalid or has expired');
 
-      const updatedUser = await dao.updateUser(user.id, { verified: true });
+      const updatedUser = await dao.updateUser(user.id, {
+        verified: true,
+        verificationToken: '',
+        verificationExpires: null,
+      });
       if (!updatedUser) throw new InternalServerError('Error updating user verifying account');
 
       return _getSanitizedUser(updatedUser);
