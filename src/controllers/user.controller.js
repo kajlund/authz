@@ -7,8 +7,9 @@ export function getUserController(cnf, log) {
   const svcUser = getUserServices(cnf, log);
 
   return {
-    deleteUser: asyncHandler(() => {
-      throw new NotImplementedError('Delete user has not been implemented yet');
+    deleteUser: asyncHandler((req) => {
+      const { id } = req.locals;
+      throw new NotImplementedError(`Delete user with id ${id} has not been implemented yet`);
     }),
     queryUsers: asyncHandler(async (req, res) => {
       const users = await svcUser.listUsers();

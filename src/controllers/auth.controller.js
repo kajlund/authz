@@ -1,8 +1,6 @@
-import { BadRequestError } from '../utils/api-error.js';
 import { ApiResponse } from '../utils/api-response.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { getUserServices } from '../services/user.services.js';
-import { loginPayloadSchema, signupPayloadSchema } from '../utils/validators.js';
 import { codes } from '../utils/status.js';
 
 export function getAuthController(cnf, log) {
@@ -10,7 +8,7 @@ export function getAuthController(cnf, log) {
 
   return {
     changePassword: asyncHandler(async (req, res) => {
-      const { oldPassword, newPassword, confirmPassword } = req.body;
+      const { oldPassword, newPassword, confirmPassword } = req.locals.body;
       await svcUser.changePassword(req.user.id, oldPassword, newPassword, confirmPassword);
 
       res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));
@@ -21,9 +19,7 @@ export function getAuthController(cnf, log) {
       res.status(codes.OK).json(new ApiResponse(codes.OK, { data: user }, `User information for ${user.alias}`));
     }),
     login: asyncHandler(async (req, res) => {
-      const vld = loginPayloadSchema.safeParse(req.body);
-      if (!vld.success) throw new BadRequestError('Faulty login data', vld.error);
-      const data = await svcUser.loginUser(vld.data);
+      const data = await svcUser.loginUser(req.locals.body);
 
       // Return response and set cookies
       const opt = { httpOnly: true, secure: true };
@@ -57,9 +53,7 @@ export function getAuthController(cnf, log) {
     }),
     register: asyncHandler(async (req, res) => {
       const verificationPath = `${req.protocol}://${req.get('host')}/api/v1/auth/verify`;
-      const vld = signupPayloadSchema.safeParse(req.body);
-      if (!vld.success) throw new BadRequestError('Faulty user data', vld.error);
-      const data = await svcUser.signupUser(vld.data, verificationPath);
+      const data = await svcUser.signupUser(req.locals.body, verificationPath);
 
       res.status(codes.CREATED).json(new ApiResponse(codes.CREATED, data, `User successfully registered`));
     }),
@@ -70,7 +64,7 @@ export function getAuthController(cnf, log) {
     }),
     resetPassword: asyncHandler(async (req, res) => {
       const { token } = req.params;
-      const { newPassword, confirmPassword } = req.body;
+      const { newPassword, confirmPassword } = req.locals.body;
       await svcUser.resetPassword(token, newPassword, confirmPassword);
 
       res.status(codes.OK).json(new ApiResponse(codes.OK, {}, 'Password successfully changed'));

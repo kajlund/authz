@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { codes, phrases } from '../utils/status.js';
 
 export function getErrorHandler(log) {
@@ -12,7 +11,7 @@ export function getErrorHandler(log) {
         detail: err.detail,
       };
       if (err.errors && err.errors.name === 'ZodError') {
-        error.errors = z.flattenError(err.errors).fieldErrors;
+        error.errors = err.errors?.issues;
       }
       return res.status(err.statusCode).json(error);
     }

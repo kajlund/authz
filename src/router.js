@@ -4,6 +4,9 @@ import { healthCheck } from './controllers/healthcheck.controller.js';
 import { getAuthMiddleware } from './middleware/auth.middleware.js';
 import { getAuthController } from './controllers/auth.controller.js';
 import { getUserController } from './controllers/user.controller.js';
+import { validateBody, validateIdParam, validateTokenParam } from './middleware/validation.middleware.js';
+import { changePasswordSchema, loginSchema, resetPasswordSchema } from './schemas/auth.schemas.js';
+import { newUserSchema } from './schemas/user.schemas.js';
 
 export function getRouter(cnf, log) {
   const ctrlAuth = getAuthController(cnf, log);
@@ -32,7 +35,7 @@ export function getRouter(cnf, log) {
         {
           method: 'post',
           path: '/changepassword',
-          middleware: [isAuthenticated],
+          middleware: [isAuthenticated, validateBody(changePasswordSchema)],
           handler: ctrlAuth.changePassword,
         },
         {
@@ -44,7 +47,7 @@ export function getRouter(cnf, log) {
         {
           method: 'post',
           path: '/login',
-          middleware: [],
+          middleware: [validateBody(loginSchema)],
           handler: ctrlAuth.login,
         },
         {
@@ -62,7 +65,7 @@ export function getRouter(cnf, log) {
         {
           method: 'post',
           path: '/register',
-          middleware: [],
+          middleware: [validateBody(newUserSchema)],
           handler: ctrlAuth.register,
         },
         {
@@ -74,7 +77,7 @@ export function getRouter(cnf, log) {
         {
           method: 'post',
           path: '/resetpassword/:token',
-          middleware: [],
+          middleware: [validateTokenParam, validateBody(resetPasswordSchema)],
           handler: ctrlAuth.resetPassword,
         },
         {
@@ -86,7 +89,7 @@ export function getRouter(cnf, log) {
         {
           method: 'get',
           path: '/verify/:token',
-          middleware: [],
+          middleware: [validateTokenParam],
           handler: ctrlAuth.verifyEmail,
         },
       ],
@@ -106,7 +109,7 @@ export function getRouter(cnf, log) {
         {
           method: 'delete',
           path: '/:id',
-          middleware: [isAuthenticated, requireAdmin],
+          middleware: [isAuthenticated, requireAdmin, validateIdParam],
           handler: ctrlUser.deleteUser,
         },
       ],
