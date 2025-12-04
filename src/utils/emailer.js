@@ -55,7 +55,8 @@ export const forgotPasswordEmailContent = (userName, passwordResetUrl) => {
       name: userName,
       intro: 'We got a request to reset your password. ',
       action: {
-        instructions: 'To reset your password. Click on the button to verify your email.',
+        instructions:
+          'To reset your password. Click on the button to verify your email.',
         button: {
           color: '#22BC66',
           text: 'Reset password',

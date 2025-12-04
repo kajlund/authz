@@ -42,7 +42,13 @@ export class ForbiddenError extends ApiError {
 }
 export class InternalServerError extends ApiError {
   constructor(detail = '', errors = [], stack = '') {
-    super(codes.INTERNAL_SERVER_ERROR, phrases.INTERNAL_SERVER_ERROR, detail, errors, stack);
+    super(
+      codes.INTERNAL_SERVER_ERROR,
+      phrases.INTERNAL_SERVER_ERROR,
+      detail,
+      errors,
+      stack,
+    );
   }
 }
 export class NotFoundError extends ApiError {
@@ -52,7 +58,13 @@ export class NotFoundError extends ApiError {
 }
 export class NotImplementedError extends ApiError {
   constructor(detail = '', errors = [], stack = '') {
-    super(codes.NOT_IMPLEMENTED, phrases.NOT_IMPLEMENTED, detail, errors, stack);
+    super(
+      codes.NOT_IMPLEMENTED,
+      phrases.NOT_IMPLEMENTED,
+      detail,
+      errors,
+      stack,
+    );
   }
 }
 export class UnauthorizedError extends ApiError {

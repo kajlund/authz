@@ -3,7 +3,9 @@ import { z } from 'zod';
 const configSchema = z.strictObject({
   env: z.enum(['development', 'production', 'test']).optional(),
   port: z.number().int().positive().gte(80).lte(65000),
-  logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']).optional(),
+  logLevel: z
+    .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])
+    .optional(),
   logHttp: z.boolean().optional(),
   dbConnection: z.string().trim(),
   saltRounds: z.number().int().positive().gte(10).lte(20),
@@ -26,7 +28,9 @@ function getDefaultConfig() {
     logHttp: process.env.LOG_HTTP === '1',
     dbConnection: process.env.DB_CONNECTION,
     saltRounds: parseInt(process.env.SALT_ROUNDS),
-    corsOrigin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
+    corsOrigin: process.env.CORS_ORIGIN?.split(',') || [
+      'http://localhost:5173',
+    ],
     accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
     accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,

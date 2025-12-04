@@ -29,7 +29,8 @@ export function validateTokenParam(req, res, next) {
 export function validateBody(schema) {
   return function (req, res, next) {
     const vld = schema.safeParse(req.body);
-    if (!vld.success) return next(new BadRequestError('Faulty body data', vld.error));
+    if (!vld.success)
+      return next(new BadRequestError('Faulty body data', vld.error));
     req.locals ??= {};
     req.locals.body = vld.data;
     next();

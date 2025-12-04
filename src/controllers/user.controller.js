@@ -9,7 +9,9 @@ export function getUserController(cnf, log) {
   return {
     deleteUser: asyncHandler((req) => {
       const { id } = req.locals;
-      throw new NotImplementedError(`Delete user with id ${id} has not been implemented yet`);
+      throw new NotImplementedError(
+        `Delete user with id ${id} has not been implemented yet`,
+      );
     }),
     queryUsers: asyncHandler(async (req, res) => {
       const users = await svcUser.listUsers();
