@@ -1,11 +1,22 @@
 import { z } from 'zod';
 
 const configSchema = z.strictObject({
-  env: z.enum(['development', 'production', 'test']).optional().default('production'),
-  port: z.coerce.number().int().positive().gte(80).lte(65000).optional().default(3005),
+  env: z
+    .enum(['development', 'production', 'test'])
+    .optional()
+    .default('production'),
+  port: z.coerce
+    .number()
+    .int()
+    .positive()
+    .gte(80)
+    .lte(65000)
+    .optional()
+    .default(3005),
   logLevel: z
     .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])
-    .optional().default('info'),
+    .optional()
+    .default('info'),
   logHttp: z.coerce.boolean().optional().default(false),
   dbUrl: z.string().trim(),
   dbAuthToken: z.string().trim(),
@@ -30,7 +41,7 @@ function getEnvConfig() {
     dbUrl: process.env.TURSO_DATABASE_URL,
     dbAuthToken: process.env.TURSO_AUTH_TOKEN,
     saltRounds: process.env.SALT_ROUNDS,
-    corsOrigin: process.env.CORS_ORIGIN,
+    corsOrigin: process.env.CORS_ORIGIN?.split(','),
     accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
     accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
