@@ -8,9 +8,7 @@ export const users = sqliteTable('users', {
     .$defaultFn(() => createId()),
   alias: text().notNull().default(''),
   email: text().notNull().unique(),
-  avatar: text()
-    .notNull()
-    .default('https://placehold.co/200x200'),
+  avatar: text().notNull().default('https://placehold.co/200x200'),
   password: text().notNull(),
   role: text().notNull().default('PROSPECT'),
   verified: int({ mode: 'boolean' }).default(0),
