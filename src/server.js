@@ -15,12 +15,12 @@ export async function startServer() {
 
   process.on('unhandledRejection', async (reason, p) => {
     log.fatal(p, `Uhandled promise rejection: Reason: ${reason}`);
-    process.exitCode = 1;
+    process.exit(1);
   });
 
   process.on('SIGINT', async () => {
     log.info('SIGINT received, shutting down...');
-    process.exitCode = 0;
+    process.exit(0);
   });
 
   log.info('Starting http server');
