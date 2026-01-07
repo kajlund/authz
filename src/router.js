@@ -2,17 +2,20 @@ import express from 'express';
 
 import { asyncHandler } from './middleware/async.handler.js';
 import { ApiResponse } from './utils/api.response.js';
-// import { getAuthMiddleware } from './middleware/auth.middleware.js';
+import { getAuthController } from './controllers/auth.controller.js';
+import { getAuthMiddleware } from './middleware/auth.middleware.js';
 import { getUserController } from './controllers/user.controller.js';
 import {
+  loginSchema,
   userSchema,
   validateBody,
   validateIdParam,
 } from './middleware/validation.middleware.js';
 
 export function getRouter(cnf, log) {
-  // const { isAuthenticated, checkRole } = getAuthMiddleware(cnf, log);
-  // const requireAdmin = checkRole('ADMIN');
+  const { isAuthenticated, checkRole } = getAuthMiddleware(cnf, log);
+  const requireAdmin = checkRole('ADMIN');
+  const ctrlAuth = getAuthController(cnf, log);
   const ctrlUser = getUserController(cnf, log);
   const routeGroups = [
     {
@@ -32,39 +35,65 @@ export function getRouter(cnf, log) {
     },
     {
       group: {
-        prefix: '/api/v1/users',
-        middleware: [],
+        prefix: '/users',
+        middleware: [isAuthenticated, requireAdmin],
       },
       routes: [
         {
           method: 'get',
           path: '/',
-          middleware: [], //isAuthenticated, requireAdmin
+          middleware: [],
           handler: ctrlUser.getUserList,
         },
         {
           method: 'get',
           path: '/:id',
-          middleware: [validateIdParam], //isAuthenticated, requireAdmin
+          middleware: [validateIdParam],
           handler: ctrlUser.findUserById,
         },
         {
           method: 'post',
           path: '/',
-          middleware: [validateBody(userSchema)], //isAuthenticated, requireAdmin
+          middleware: [validateBody(userSchema)],
           handler: ctrlUser.createUser,
         },
         {
           method: 'put',
           path: '/:id',
-          middleware: [validateIdParam, validateBody(userSchema)], //isAuthenticated, requireAdmin
+          middleware: [validateIdParam, validateBody(userSchema)],
           handler: ctrlUser.updateUser,
         },
         {
           method: 'delete',
           path: '/:id',
-          middleware: [validateIdParam], // isAuthenticated, requireAdmin,
+          middleware: [validateIdParam],
           handler: ctrlUser.deleteUser,
+        },
+      ],
+    },
+    {
+      group: {
+        prefix: '/auth',
+        middleware: [],
+      },
+      routes: [
+        {
+          method: 'post',
+          path: '/login',
+          middleware: [validateBody(loginSchema)],
+          handler: ctrlAuth.loginUser,
+        },
+        {
+          method: 'get',
+          path: '/logout',
+          middleware: [isAuthenticated],
+          handler: ctrlAuth.logoutUser,
+        },
+        {
+          method: 'get',
+          path: '/me',
+          middleware: [isAuthenticated],
+          handler: ctrlAuth.getCurrentUser,
         },
       ],
     },

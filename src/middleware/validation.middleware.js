@@ -5,6 +5,11 @@ import { BadRequestError } from '../utils/api.error.js';
 const tokenSchema = z.string().min(64).max(64);
 const cuidSchema = z.string().min(24).max(24);
 
+export const loginSchema = z.strictObject({
+  email: z.email().lowercase().trim(),
+  password: z.string().trim(),
+});
+
 export const userSchema = z.strictObject({
   email: z.email().lowercase().trim(),
   password: z.string().trim().min(8),
