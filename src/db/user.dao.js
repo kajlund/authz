@@ -7,8 +7,8 @@ export function getUserDAO(log) {
   return {
     createUser: async function (data) {
       const time = new Date();
-      data.createdAt = time;
-      data.updatedAt = time;
+      data.createdAt = time.toISOString();
+      data.updatedAt = time.toISOString();
       const [newUser] = await db.insert(users).values(data).returning();
       log.debug(newUser, 'Created user');
       return newUser;
