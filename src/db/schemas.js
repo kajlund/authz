@@ -1,31 +1,40 @@
 import { createId } from '@paralleldrive/cuid2';
-import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+} from 'drizzle-orm/pg-core';
 
-export const users = sqliteTable('users', {
-  id: text('id')
+const timestamps = {
+  createdAt: timestamp('createdAt', { withTimezone: true, mode: 'string' })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true, mode: 'string' })
+    .notNull()
+    .defaultNow(),
+};
+
+export const userRoleEnum = pgEnum('user_role', ['PROSPECT', 'USER', 'ADMIN']);
+
+export const users = pgTable('Users', {
+  id: varchar()
     .primaryKey()
     .$defaultFn(() => createId()),
-  alias: text().notNull().default(''),
-  email: text().notNull().unique(),
-  avatar: text().notNull().default('https://placehold.co/200x200'),
+  alias: varchar({ length: 50 }).notNull().default(''),
+  email: varchar({ length: 255 }).notNull().unique(),
+  avatar: varchar({ length: 255 })
+    .notNull()
+    .default('https://placehold.co/200x200'),
   password: text().notNull(),
-  role: text().notNull().default('PROSPECT'),
-  verified: int({ mode: 'boolean' }).default(0),
+  role: userRoleEnum().notNull().default('PROSPECT'),
+  verified: boolean().default(false),
   refreshToken: text().notNull().default(''),
   forgotToken: text().notNull().default(''),
-  forgotExpires: text()
-    .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
+  forgotExpires: timestamp(),
   verificationToken: text().notNull().default(''),
-  verificationExpires: text()
-    .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
-  createdAt: text()
-    .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text()
-    .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`)
-    .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+  verificationExpires: timestamp(),
+  ...timestamps,
 });
