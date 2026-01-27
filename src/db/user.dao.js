@@ -70,7 +70,7 @@ export function getUserDAO(log) {
       return data;
     },
     updateUser: async function (id, data) {
-      data.updatedAt = new Date();
+      data.updatedAt = new Date().toISOString();
       const [updated] = await db
         .update(users)
         .set(data)
