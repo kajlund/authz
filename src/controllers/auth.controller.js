@@ -6,9 +6,9 @@ import { codes } from '../utils/status.js';
 export function getAuthController(cnf, log) {
   const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: 'Lax',
-    domain: cnf.isDev ? 'localhost' : '.kajlund.com',
+    secure: false,
+    sameSite: 'lax',
+    // domain: cnf.isDev ? 'localhost' : '.kajlund.com',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
   const svcAuth = getAuthServices(cnf, log);
