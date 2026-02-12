@@ -4,13 +4,6 @@ import { getAuthServices } from '../services/auth.services.js';
 import { codes } from '../utils/status.js';
 
 export function getAuthController(cnf, log) {
-  const options = {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
-    // domain: cnf.isDev ? 'localhost' : '.kajlund.com',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  };
   const svcAuth = getAuthServices(cnf, log);
 
   return {
@@ -25,8 +18,6 @@ export function getAuthController(cnf, log) {
 
       res
         .status(codes.OK)
-        .cookie('accessToken', tokens.accessToken, options)
-        .cookie('refreshToken', tokens.refreshToken, options)
         .json(new ApiResponse(codes.OK, tokens, 'User logged in'));
     }),
     logoutUser: asyncHandler(async (req, res) => {
@@ -34,8 +25,6 @@ export function getAuthController(cnf, log) {
       await svcAuth.logoutUser(id);
       res
         .status(codes.OK)
-        .clearCookie('accessToken', options)
-        .clearCookie('refreshToken', options)
         .json(new ApiResponse(codes.OK, {}, 'User logged out'));
     }),
   };

@@ -55,7 +55,7 @@ export function getAuthUtils(cnf, log) {
     },
     verifyAccessToken: (token) => {
       try {
-        const decoded = jwt.decode(token, cnf.accessTokenSecret);
+        const decoded = jwt.validate(token, cnf.accessTokenSecret);
         return decoded;
       } catch (err) {
         log.error(err);

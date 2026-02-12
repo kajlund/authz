@@ -58,6 +58,10 @@ export function getConfig(config = {}) {
     console.log(result.error);
     throw new Error('Configuration faulty');
   }
-  const cnf = { ...result.data, isDev: result.data.env === 'development' };
+  const cnf = {
+    ...result.data,
+    isDev: result.data.env === 'development',
+    isProd: result.data.env === 'production',
+  };
   return cnf;
 }
