@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm';
-import gravatar from 'gravatar';
 
 import db from './index.js';
 import { users } from './schemas.js';
@@ -10,7 +9,6 @@ export function getUserDAO(log) {
       const time = new Date();
       data.createdAt = time.toISOString();
       data.updatedAt = time.toISOString();
-      data.avatar = gravatar.url(data.email);
       const [newUser] = await db.insert(users).values(data).returning();
       log.debug(newUser, 'Created user');
       return newUser;
@@ -73,7 +71,6 @@ export function getUserDAO(log) {
     },
     updateUser: async function (id, data) {
       data.updatedAt = new Date().toISOString();
-      data.avatar = gravatar.url(data.email);
       const [updated] = await db
         .update(users)
         .set(data)

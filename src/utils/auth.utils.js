@@ -3,8 +3,18 @@ import { createHash, randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const getGravatarUrl = (email) => {
+  const hash = createHash('md5')
+    .update(email.trim().toLowerCase())
+    .digest('hex');
+  // d=mp (Mystery Person) or d=identicon provides a
+  // default if the email has no Gravatar
+  return `https://www.gravatar.com/avatar/${hash}?s=200&d=mp`;
+};
+
 export function getAuthUtils(cnf, log) {
   return {
+    getGravatarUrl,
     comparePasswords: async (pwd, hash) => {
       return await bcrypt.compare(pwd, hash);
     },
@@ -17,7 +27,7 @@ export function getAuthUtils(cnf, log) {
         id: user.id,
         alias: user.alias,
         email: user.email,
-        avatar: user.avatar,
+        avatar: user.avatar || getGravatarUrl(user.email),
         role: user.role,
       };
       const token = jwt.sign(payload, cnf.accessTokenSecret, {
@@ -55,7 +65,7 @@ export function getAuthUtils(cnf, log) {
     },
     verifyAccessToken: (token) => {
       try {
-        const decoded = jwt.validate(token, cnf.accessTokenSecret);
+        const decoded = jwt.verify(token, cnf.accessTokenSecret);
         return decoded;
       } catch (err) {
         log.error(err);

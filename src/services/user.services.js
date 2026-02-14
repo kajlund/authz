@@ -6,14 +6,15 @@ import {
 import { getUserDAO } from '../db/user.dao.js';
 import { getAuthUtils } from '../utils/auth.utils.js';
 
-function _sanitizeUser(user) {
-  const { id, alias, email, avatar, role, createdAt, updatedAt } = user;
-  return { id, alias, email, avatar, role, createdAt, updatedAt };
-}
-
 export const getUserServices = (cnf, log) => {
   const authUtils = getAuthUtils(cnf, log);
   const dao = getUserDAO(log);
+
+  function _sanitizeUser(user) {
+    let { id, alias, email, avatar, role, createdAt, updatedAt } = user;
+    if (!avatar) avatar = authUtils.getGravatarUrl(email);
+    return { id, alias, email, avatar, role, createdAt, updatedAt };
+  }
 
   return {
     createUser: async (payload) => {
