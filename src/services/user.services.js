@@ -5,6 +5,7 @@ import {
 } from '../utils/api.error.js';
 import { getUserDAO } from '../db/user.dao.js';
 import { getAuthUtils } from '../utils/auth.utils.js';
+import { patchEntity } from '../utils/shared.js';
 
 export const getUserServices = (cnf, log) => {
   const authUtils = getAuthUtils(cnf, log);
@@ -45,7 +46,16 @@ export const getUserServices = (cnf, log) => {
       return data;
     },
     updateUser: async (id, payload) => {
-      const updated = await dao.updateUser(id, payload);
+      const user = await dao.findUserById(id);
+      if (!user) throw new NotFoundError(`User with id ${id} was not found`);
+
+      const { alias, avatar } = user;
+      const original = { alias, avatar };
+      const cleanPayload = patchEntity(original, payload, ['alias', 'avatar'], {
+        allowEmpty: false,
+      });
+
+      const updated = await dao.updateUser(id, cleanPayload);
       if (!updated)
         throw new InternalServerError(`Failed updating user with id ${id}`);
       return _sanitizeUser(updated);

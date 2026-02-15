@@ -17,6 +17,11 @@ export const userSchema = z.strictObject({
   avatar: z.url().trim().optional(),
 });
 
+export const profileSchema = z.strictObject({
+  alias: z.string().min(3).max(50).trim().optional(),
+  avatar: z.url().trim().optional(),
+});
+
 export function validateIdParam(req, res, next) {
   try {
     const id = cuidSchema.parse(req.params?.id);

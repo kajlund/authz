@@ -7,6 +7,7 @@ import { getAuthMiddleware } from './middleware/auth.middleware.js';
 import { getUserController } from './controllers/user.controller.js';
 import {
   loginSchema,
+  profileSchema,
   userSchema,
   validateBody,
   validateIdParam,
@@ -94,6 +95,16 @@ export function getRouter(cnf, log) {
           path: '/me',
           middleware: [isAuthenticated],
           handler: ctrlAuth.getCurrentUser,
+        },
+        {
+          method: 'put',
+          path: '/me/:id',
+          middleware: [
+            isAuthenticated,
+            validateIdParam,
+            validateBody(profileSchema),
+          ],
+          handler: ctrlAuth.updateCurrentUser,
         },
       ],
     },
