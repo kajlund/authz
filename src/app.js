@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import { rateLimit } from 'express-rate-limit';
 import httpLogger from 'pino-http';
 
 import { getRouter } from './router.js';
@@ -25,7 +26,16 @@ export function getApp(cnf, log) {
       exposedHeaders: ['set-cookie'],
     }),
   );
-  app.use(express.static('public'));
+
+  const limiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // per hour
+    max: 10, // Limit each IP to 10 requests.
+    message: { error: 'Too many login attempts. Account locked for 1 hour.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    // store: ... , // Redis, Memcached, etc.
+  });
+  app.use(limiter);
 
   // Logging Middleware
   if (cnf.logHttp) {
